@@ -1,6 +1,8 @@
-# Django POST Content Types Examples
+# Django POST Content Types
 
 This Django project demonstrates handling 9 different POST content types with separate views and proper CSRF token handling.
+
+![Screenshot](screenshot.png)
 
 ## Quick Start
 

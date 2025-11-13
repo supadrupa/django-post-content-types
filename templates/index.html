@@ -1,0 +1,280 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django POST Formats</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        h1 { margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .card { border: 1px solid #ddd; padding: 15px; border-radius: 4px; }
+        .card h2 { font-size: 16px; margin-bottom: 10px; }
+        button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .payload { margin: 10px 0; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 12px; font-family: monospace; white-space: pre-wrap; max-height: 150px; overflow: auto; }
+        .response { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 12px; max-height: 200px; overflow: auto; }
+        input[type="file"] { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Django POST Content Types Examples</h1>
+    
+    <div class="grid">
+        <div class="card">
+            <h2>1. application/json</h2>
+            <div class="payload">{ name: "John Doe", email: "john@example.com", age: 30 }</div>
+            <button onclick="sendJSON()">Send JSON</button>
+            <div id="json-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>2. multipart/form-data</h2>
+            <div class="payload">username: john_doe
+email: john@example.com
+avatar: [selected file]</div>
+            <input type="file" id="file-input">
+            <button onclick="sendMultipart()">Send Multipart</button>
+            <div id="multipart-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>3. application/x-www-form-urlencoded</h2>
+            <div class="payload">username=john_doe&email=john@example.com&password=secret123</div>
+            <button onclick="sendURLEncoded()">Send URL Encoded</button>
+            <div id="urlencoded-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>4. text/plain</h2>
+            <div class="payload">This is plain text content.
+It can span multiple lines.
+Line 3 of the content.</div>
+            <button onclick="sendTextPlain()">Send Text</button>
+            <div id="text-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>5. application/octet-stream</h2>
+            <div class="payload">Uint8Array([72, 101, 108, 108, 111])
+// "Hello" in ASCII bytes</div>
+            <button onclick="sendBinary()">Send Binary</button>
+            <div id="binary-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>6. application/xml</h2>
+            <div class="payload">&lt;user&gt;
+  &lt;name&gt;John Doe&lt;/name&gt;
+  &lt;email&gt;john@example.com&lt;/email&gt;
+  &lt;age&gt;30&lt;/age&gt;
+&lt;/user&gt;</div>
+            <button onclick="sendXML()">Send XML</button>
+            <div id="xml-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>7. text/html</h2>
+            <div class="payload">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;&lt;h1&gt;Hello World&lt;/h1&gt;&lt;/body&gt;
+&lt;/html&gt;</div>
+            <button onclick="sendHTML()">Send HTML</button>
+            <div id="html-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>8. image/svg+xml</h2>
+            <div class="payload">&lt;svg width="100" height="100"&gt;
+  &lt;circle cx="50" cy="50" r="40"
+    fill="red" /&gt;
+&lt;/svg&gt;</div>
+            <button onclick="sendSVG()">Send SVG</button>
+            <div id="svg-response" class="response"></div>
+        </div>
+
+        <div class="card">
+            <h2>9. application/x-ndjson</h2>
+            <div class="payload">{"name":"John","age":30}
+{"name":"Jane","age":25}
+{"name":"Bob","age":35}</div>
+            <button onclick="sendNDJSON()">Send NDJSON</button>
+            <div id="ndjson-response" class="response"></div>
+        </div>
+    </div>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function getCSRFToken() {
+            return getCookie('csrftoken');
+        }
+
+        async function sendJSON() {
+            const data = { name: "John Doe", email: "john@example.com", age: 30 };
+            const response = await fetch('/api/json/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            document.getElementById('json-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendMultipart() {
+            const formData = new FormData();
+            formData.append('username', 'john_doe');
+            formData.append('email', 'john@example.com');
+
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files[0]) {
+                formData.append('avatar', fileInput.files[0]);
+            }
+
+            const response = await fetch('/api/multipart/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: formData
+            });
+            const result = await response.json();
+            document.getElementById('multipart-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendURLEncoded() {
+            const params = new URLSearchParams();
+            params.append('username', 'john_doe');
+            params.append('email', 'john@example.com');
+            params.append('password', 'secret123');
+
+            const response = await fetch('/api/urlencoded/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: params
+            });
+            const result = await response.json();
+            document.getElementById('urlencoded-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendTextPlain() {
+            const textData = `This is plain text content.\nIt can span multiple lines.\nLine 3 of the content.`;
+            const response = await fetch('/api/text/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: textData
+            });
+            const result = await response.json();
+            document.getElementById('text-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendBinary() {
+            const binaryData = new Uint8Array([72, 101, 108, 108, 111]);
+            const response = await fetch('/api/binary/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: binaryData
+            });
+            const result = await response.json();
+            document.getElementById('binary-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendXML() {
+            const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<user>
+    <name>John Doe</name>
+    <email>john@example.com</email>
+    <age>30</age>
+</user>`;
+            const response = await fetch('/api/xml/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/xml',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: xmlData
+            });
+            const result = await response.json();
+            document.getElementById('xml-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendHTML() {
+            const htmlData = `<!DOCTYPE html>
+<html>
+<head><title>Example</title></head>
+<body><h1>Hello World</h1></body>
+</html>`;
+            const response = await fetch('/api/html/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/html',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: htmlData
+            });
+            const result = await response.json();
+            document.getElementById('html-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendSVG() {
+            const svgData = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+    <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+</svg>`;
+            const response = await fetch('/api/svg/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'image/svg+xml',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: svgData
+            });
+            const result = await response.json();
+            document.getElementById('svg-response').textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function sendNDJSON() {
+            const ndjsonData = `{"name":"John","age":30}
+{"name":"Jane","age":25}
+{"name":"Bob","age":35}`;
+            const response = await fetch('/api/ndjson/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-ndjson',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: ndjsonData
+            });
+            const result = await response.json();
+            document.getElementById('ndjson-response').textContent = JSON.stringify(result, null, 2);
+        }
+    </script>
+</body>
+</html>
+

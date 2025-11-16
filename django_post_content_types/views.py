@@ -94,18 +94,18 @@ def handle_json(request):
             {
                 "status": "error",
                 "error": "Invalid JSON",
-                "content_type": request.content_type
+                "content_type": request.content_type,
             },
-            status=400
+            status=400,
         )
     except ValidationError as e:
         return JsonResponse(
             {
                 "status": "error",
                 "errors": e.errors(),
-                "content_type": request.content_type
+                "content_type": request.content_type,
             },
-            status=400
+            status=400,
         )
 
 

@@ -4,7 +4,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 import json
 import xml.etree.ElementTree as ET
-from .forms import MultipartForm
+from pydantic import ValidationError
+from .forms import MultipartForm, URLEncodedForm
+from .schemas import JSONDataSchema
 
 
 @ensure_csrf_cookie
@@ -18,15 +20,33 @@ def handle_json(request):
     """Handle application/json requests"""
     try:
         data = json.loads(request.body)
+        validated = JSONDataSchema(**data)
+
         return JsonResponse(
             {
                 "status": "success",
-                "received": data,
+                "received": validated.model_dump(),
                 "content_type": request.content_type,
             }
         )
     except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        return JsonResponse(
+            {
+                "status": "error",
+                "error": "Invalid JSON",
+                "content_type": request.content_type
+            },
+            status=400
+        )
+    except ValidationError as e:
+        return JsonResponse(
+            {
+                "status": "error",
+                "errors": e.errors(),
+                "content_type": request.content_type
+            },
+            status=400
+        )
 
 
 @require_http_methods(["POST"])
@@ -68,10 +88,22 @@ def handle_multipart(request):
 @require_http_methods(["POST"])
 def handle_urlencoded(request):
     """Handle application/x-www-form-urlencoded requests"""
+    form = URLEncodedForm(request.POST)
+
+    if not form.is_valid():
+        return JsonResponse(
+            {
+                "status": "error",
+                "errors": form.errors,
+                "content_type": request.content_type,
+            },
+            status=400,
+        )
+
     return JsonResponse(
         {
             "status": "success",
-            "received": dict(request.POST),
+            "form_data": form.cleaned_data,
             "content_type": request.content_type,
         }
     )

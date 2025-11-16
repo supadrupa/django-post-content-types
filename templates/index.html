@@ -42,7 +42,7 @@ avatar: [selected file]</div>
 
         <div class="card">
             <h2>3. application/x-www-form-urlencoded</h2>
-            <div class="payload">username=john_doe&email=john@example.com&password=secret123</div>
+            <div class="payload">username=john_doe&email=john@example.com&password=Secret123</div>
             <button onclick="sendURLEncoded()">Send URL Encoded</button>
             <div id="urlencoded-response" class="response"></div>
         </div>
@@ -164,7 +164,7 @@ Line 3 of the content.</div>
             const params = new URLSearchParams();
             params.append('username', 'john_doe');
             params.append('email', 'john@example.com');
-            params.append('password', 'secret123');
+            params.append('password', 'Secret123');
 
             const response = await fetch('/api/urlencoded/', {
                 method: 'POST',

@@ -42,7 +42,7 @@ avatar: [selected file]</div>
 
         <div class="card">
             <h2>3. application/x-www-form-urlencoded</h2>
-            <div class="payload">username=john_doe&email=john@example.com&password=Secret123</div>
+            <div class="payload">username=john_doe&email=john@example.com&password=Secret123&bio=This+is+a+multi-line%0Abio+text.</div>
             <button onclick="sendURLEncoded()">Send URL Encoded</button>
             <div id="urlencoded-response" class="response"></div>
         </div>
@@ -165,6 +165,7 @@ Line 3 of the content.</div>
             params.append('username', 'john_doe');
             params.append('email', 'john@example.com');
             params.append('password', 'Secret123');
+            params.append('bio', 'This is a multi-line\nbio text.\nIt supports newlines!');
 
             const response = await fetch('/api/urlencoded/', {
                 method: 'POST',

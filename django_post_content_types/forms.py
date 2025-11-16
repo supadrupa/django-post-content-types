@@ -75,6 +75,14 @@ class URLEncodedForm(forms.Form):
             'min_length': 'Password must be at least 8 characters long'
         }
     )
+    bio = forms.CharField(
+        required=False,
+        max_length=500,
+        widget=forms.Textarea,
+        error_messages={
+            'max_length': 'Bio cannot exceed 500 characters'
+        }
+    )
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
